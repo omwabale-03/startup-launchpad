@@ -1,9 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { db } from "@workspace/db";
-import { usersTable } from "@workspace/db/schema";
-import { eq } from "drizzle-orm";
-import type { User } from "@workspace/db";
+import { User, type IUser } from "../lib/models";
 
 const JWT_SECRET = process.env["JWT_SECRET"] || "customfit-dev-secret-change-in-prod";
 
@@ -11,7 +8,7 @@ const JWT_SECRET = process.env["JWT_SECRET"] || "customfit-dev-secret-change-in-
 declare global {
   namespace Express {
     interface Request {
-      user?: User;
+      user?: IUser;
     }
   }
 }
@@ -26,14 +23,9 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 
   try {
     const token = authHeader.slice(7);
-    const payload = jwt.verify(token, JWT_SECRET) as { userId: number };
+    const payload = jwt.verify(token, JWT_SECRET) as { userId: string };
 
-    const [user] = await db
-      .select()
-      .from(usersTable)
-      .where(eq(usersTable.id, payload.userId))
-      .limit(1);
-
+    const user = await User.findById(payload.userId);
     if (!user) {
       res.status(401).json({ error: "User not found" });
       return;

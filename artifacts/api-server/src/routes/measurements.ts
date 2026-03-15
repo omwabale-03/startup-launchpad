@@ -1,13 +1,25 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { db } from "@workspace/db";
-import { measurementsTable } from "@workspace/db/schema";
-import { eq } from "drizzle-orm";
+import { Measurement } from "../lib/models";
 import { requireAuth } from "../middlewares/auth";
 import { SaveMeasurementsBody } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
-// POST /api/measurements - Save or update user measurements
+// Serialize measurement to API shape
+function serializeMeasurement(m: InstanceType<typeof Measurement>) {
+  return {
+    id:            m._id.toString(),
+    userId:        m.userId.toString(),
+    waist:         m.waist,
+    hip:           m.hip,
+    pantLength:    m.pantLength,
+    thigh:         m.thigh,
+    fitPreference: m.fitPreference,
+    updatedAt:     m.updatedAt,
+  };
+}
+
+// POST /api/measurements — upsert user measurements
 router.post("/", requireAuth, async (req: Request, res: Response) => {
   const parsed = SaveMeasurementsBody.safeParse(req.body);
   if (!parsed.success) {
@@ -15,50 +27,28 @@ router.post("/", requireAuth, async (req: Request, res: Response) => {
     return;
   }
 
-  const userId = req.user!.id;
+  const userId = req.user!._id;
   const { waist, hip, pantLength, thigh, fitPreference } = parsed.data;
 
-  // Check if measurements already exist for this user
-  const [existing] = await db
-    .select()
-    .from(measurementsTable)
-    .where(eq(measurementsTable.userId, userId))
-    .limit(1);
+  const measurement = await Measurement.findOneAndUpdate(
+    { userId },
+    { waist, hip, pantLength, thigh, fitPreference, updatedAt: new Date() },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
 
-  if (existing) {
-    // Update existing measurements
-    const [updated] = await db
-      .update(measurementsTable)
-      .set({ waist, hip, pantLength, thigh, fitPreference, updatedAt: new Date() })
-      .where(eq(measurementsTable.userId, userId))
-      .returning();
-    res.json(updated);
-  } else {
-    // Create new measurements
-    const [created] = await db
-      .insert(measurementsTable)
-      .values({ userId, waist, hip, pantLength, thigh, fitPreference })
-      .returning();
-    res.json(created);
-  }
+  res.json(serializeMeasurement(measurement!));
 });
 
-// GET /api/measurements - Get current user's measurements
+// GET /api/measurements — get current user's measurements
 router.get("/", requireAuth, async (req: Request, res: Response) => {
-  const userId = req.user!.id;
-
-  const [measurement] = await db
-    .select()
-    .from(measurementsTable)
-    .where(eq(measurementsTable.userId, userId))
-    .limit(1);
+  const measurement = await Measurement.findOne({ userId: req.user!._id });
 
   if (!measurement) {
     res.status(404).json({ error: "No measurements found" });
     return;
   }
 
-  res.json(measurement);
+  res.json(serializeMeasurement(measurement));
 });
 
 export default router;
