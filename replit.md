@@ -11,8 +11,8 @@ Full-stack CustomFit Pants e-commerce website — a startup that sells customize
 - **Package manager**: pnpm
 - **TypeScript version**: 5.9
 - **API framework**: Express 5
-- **Database**: PostgreSQL + Drizzle ORM
-- **Validation**: Zod (`zod/v4`), `drizzle-zod`
+- **Database**: MongoDB Atlas + Mongoose ODM
+- **Validation**: Zod (`zod/v4`)
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
 - **Auth**: JWT (jsonwebtoken) + Phone OTP (simulated in dev)
