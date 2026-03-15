@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "CustomFit Pants"
+version = "1.0.0"
+id = "artifacts/customfit"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+localPort = 20760
+name = "web"
+paths = ["/"]
+
+[services.development]
+run = "pnpm --filter @workspace/customfit run dev"
+
+[services.env]
+PORT = "20760"
+BASE_PATH = "/"
+
+[services.production]
+build = ["pnpm", "--filter", "@workspace/customfit", "run", "build"]
+publicDir = "artifacts/customfit/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"

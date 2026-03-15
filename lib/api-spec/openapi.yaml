@@ -1,22 +1,30 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: CustomFit Pants API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: users
+    description: User operations
+  - name: measurements
+    description: Measurement operations
+  - name: orders
+    description: Order operations
+  - name: admin
+    description: Admin operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,7 +32,268 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/send-otp:
+    post:
+      operationId: sendOtp
+      tags: [auth]
+      summary: Send OTP to phone number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendOtpRequest"
+      responses:
+        "200":
+          description: OTP sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendOtpResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/verify-otp:
+    post:
+      operationId: verifyOtp
+      tags: [auth]
+      summary: Verify OTP and login/signup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyOtpRequest"
+      responses:
+        "200":
+          description: Verified and logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Invalid OTP
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /measurements:
+    post:
+      operationId: saveMeasurements
+      tags: [measurements]
+      summary: Save user measurements
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MeasurementInput"
+      responses:
+        "200":
+          description: Measurements saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Measurement"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    get:
+      operationId: getMeasurements
+      tags: [measurements]
+      summary: Get user measurements
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User measurements
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Measurement"
+        "404":
+          description: No measurements found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /orders:
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Create a new order
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderInput"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    get:
+      operationId: getOrders
+      tags: [orders]
+      summary: Get user orders
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get a single order
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Order details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/users:
+    get:
+      operationId: adminGetUsers
+      tags: [admin]
+      summary: Admin - Get all users
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /admin/orders:
+    get:
+      operationId: adminGetOrders
+      tags: [admin]
+      summary: Admin - Get all orders
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of all orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminOrder"
+
+  /admin/measurements:
+    get:
+      operationId: adminGetMeasurements
+      tags: [admin]
+      summary: Admin - Get all measurements
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of all measurements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminMeasurement"
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     HealthStatus:
       type: object
@@ -34,3 +303,209 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    SendOtpRequest:
+      type: object
+      properties:
+        phone:
+          type: string
+          description: Phone number in E.164 format
+      required:
+        - phone
+
+    SendOtpResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        devOtp:
+          type: string
+          description: OTP shown only in development mode
+      required:
+        - message
+
+    VerifyOtpRequest:
+      type: object
+      properties:
+        phone:
+          type: string
+        otp:
+          type: string
+      required:
+        - phone
+        - otp
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+      required:
+        - token
+        - user
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        phone:
+          type: string
+        name:
+          type: string
+          nullable: true
+        isAdmin:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - phone
+        - isAdmin
+        - createdAt
+
+    MeasurementInput:
+      type: object
+      properties:
+        waist:
+          type: number
+        hip:
+          type: number
+        pantLength:
+          type: number
+        thigh:
+          type: number
+        fitPreference:
+          type: string
+          enum: [slim, regular, relaxed]
+      required:
+        - waist
+        - hip
+        - pantLength
+        - thigh
+        - fitPreference
+
+    Measurement:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        waist:
+          type: number
+        hip:
+          type: number
+        pantLength:
+          type: number
+        thigh:
+          type: number
+        fitPreference:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - waist
+        - hip
+        - pantLength
+        - thigh
+        - fitPreference
+        - updatedAt
+
+    OrderInput:
+      type: object
+      properties:
+        fabricType:
+          type: string
+          enum: [cotton, stretch-cotton, linen]
+        color:
+          type: string
+        pocketStyle:
+          type: string
+          enum: [classic, cargo, no-pocket]
+        occasion:
+          type: string
+          enum: [formal, casual]
+        measurementId:
+          type: integer
+      required:
+        - fabricType
+        - color
+        - pocketStyle
+        - occasion
+        - measurementId
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        measurementId:
+          type: integer
+        fabricType:
+          type: string
+        color:
+          type: string
+        pocketStyle:
+          type: string
+        occasion:
+          type: string
+        estimatedPrice:
+          type: number
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        measurement:
+          $ref: "#/components/schemas/Measurement"
+      required:
+        - id
+        - userId
+        - measurementId
+        - fabricType
+        - color
+        - pocketStyle
+        - occasion
+        - estimatedPrice
+        - status
+        - createdAt
+
+    AdminOrder:
+      allOf:
+        - $ref: "#/components/schemas/Order"
+        - type: object
+          properties:
+            user:
+              $ref: "#/components/schemas/User"
+
+    AdminMeasurement:
+      allOf:
+        - $ref: "#/components/schemas/Measurement"
+        - type: object
+          properties:
+            user:
+              $ref: "#/components/schemas/User"

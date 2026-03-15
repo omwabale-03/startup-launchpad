@@ -1,0 +1,18 @@
+packages:
+  "framer-motion": "For elegant page transitions and micro-interactions suited for a premium brand"
+  "clsx": "For conditional class merging"
+  "tailwind-merge": "For merging tailwind classes safely"
+  "lucide-react": "For crisp, modern icons"
+
+images:
+  - path: "artifacts/customfit/public/images/hero-pants.png"
+    description: "A stylish minimal photograph from the waist down of a man wearing perfectly fitted tailored trousers in beige, walking, neutral studio background, soft lighting, high fashion editorial style"
+    aspect_ratio: "16:9"
+  - path: "artifacts/customfit/public/images/fabric-texture.png"
+    description: "Close up macro photography of premium woven fabric texture in soft cream color, elegant lighting, abstract background"
+    aspect_ratio: "3:4"
+
+notes:
+  - Orval generated hooks from @workspace/api-client-react will be used
+  - customFetch is configured to take RequestInit, so Authorization headers will be passed via the `request` option in the hooks
+  - Local storage is used for temporary customization state and auth token

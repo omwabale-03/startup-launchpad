@@ -1,0 +1,87 @@
+Create a modern full-stack website for a startup that sells customized pants for men.
+
+Tech stack:
+
+* Frontend: HTML, CSS, JavaScript (or React if preferred)
+* Backend: Node.js with Express
+* Database: MongoDB
+* Authentication: Phone number login with OTP verification
+* OTP can be simulated or implemented using Firebase authentication.
+
+Website Requirements:
+
+1. Landing Page
+
+* Brand name placeholder: "CustomFit Pants"
+* Tagline: "Perfectly tailored pants made just for you."
+* Sections:
+
+  * Hero section with call-to-action button "Start Customizing"
+  * How It Works (3 steps: Sign up → Enter measurements → Get custom pants)
+  * Features (Premium Fabric, Perfect Fit, Affordable Price)
+  * Customer testimonials section
+  * Footer with contact info and social media
+
+2. Authentication System
+
+* Login and Signup using phone number
+* User enters phone number
+* System sends OTP
+* User verifies OTP
+* After verification user is logged in and redirected to dashboard
+
+3. User Dashboard
+   After login users should see:
+
+* Welcome message
+* Button: "Create Custom Pants Order"
+* View previous orders
+
+4. Measurement Form Page
+   Create a form where users enter their measurements:
+
+* Waist
+* Hip
+* Pant Length
+* Thigh
+* Fit Preference (Slim / Regular / Relaxed)
+
+Store all data in MongoDB.
+
+5. Customization Page
+   Allow users to choose:
+
+* Fabric type (Cotton, Stretch Cotton, Linen)
+* Color options
+* Pocket style
+* Occasion (Formal / Casual)
+
+6. Order Summary Page
+   Display:
+
+* User measurements
+* Selected fabric and style
+* Estimated price
+* Confirm order button
+
+7. Admin Panel (Simple)
+   Admin can:
+
+* View all users
+* View all orders
+* View measurements
+
+8. UI Style
+
+* Minimal
+* Premium clothing brand style
+* Neutral colors (black, white, beige)
+
+9. Additional Features
+
+* Mobile responsive design
+* Form validation
+* Clean folder structure
+* Comments in code for explanation
+
+Generate all necessary files including frontend, backend, and database models.
