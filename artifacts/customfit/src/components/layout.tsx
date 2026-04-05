@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, AUTH_DISABLED } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { Menu, X, Scissors } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -60,8 +60,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </button>
               </div>
             ) : (
-              <Link 
-                href="/auth" 
+              <Link
+                href={AUTH_DISABLED ? "/dashboard" : "/auth"}
                 className="px-6 py-2.5 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all hover:-translate-y-0.5"
               >
                 Sign In
@@ -104,7 +104,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 Sign Out
               </button>
             ) : (
-              <Link href="/auth" className="text-2xl font-serif">Sign In</Link>
+              <Link
+                href={AUTH_DISABLED ? "/dashboard" : "/auth"}
+                className="text-2xl font-serif"
+              >
+                Sign In
+              </Link>
             )}
           </motion.div>
         )}
@@ -129,7 +134,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <h4 className="font-medium mb-4">Navigation</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="/">Home</Link></li>
-              <li><Link href="/auth">Sign In</Link></li>
+              <li>
+                <Link href={AUTH_DISABLED ? "/dashboard" : "/auth"}>Sign In</Link>
+              </li>
               <li><Link href="/dashboard">My Orders</Link></li>
             </ul>
           </div>

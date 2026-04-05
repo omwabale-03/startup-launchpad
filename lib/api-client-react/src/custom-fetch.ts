@@ -31,6 +31,28 @@ function resolveUrl(input: RequestInfo | URL): string {
   return input.url;
 }
 
+/** When set (e.g. by Vite `define`), browser calls the API host directly instead of same-origin `/api` (avoids dev-server 404 if proxy fails). */
+function getViteApiBaseUrl(): string | undefined {
+  try {
+    const env = (import.meta as unknown as { env?: Record<string, unknown> }).env;
+    const v = env?.VITE_API_BASE_URL;
+    if (typeof v !== "string" || v.trim() === "") return undefined;
+    return v.replace(/\/$/, "");
+  } catch {
+    return undefined;
+  }
+}
+
+function resolveFetchInput(input: RequestInfo | URL): RequestInfo | URL {
+  if (typeof input !== "string") return input;
+  if (input.startsWith("http://") || input.startsWith("https://")) return input;
+  const base = getViteApiBaseUrl();
+  if (base != null && input.startsWith("/api")) {
+    return `${base}${input}`;
+  }
+  return input;
+}
+
 function mergeHeaders(...sources: Array<HeadersInit | undefined>): Headers {
   const headers = new Headers();
 
@@ -277,13 +299,18 @@ export async function customFetch<T = unknown>(
 ): Promise<T> {
   const { responseType = "auto", headers: headersInit, ...init } = options;
 
-  const method = resolveMethod(input, init.method);
+  const resolvedInput = resolveFetchInput(input);
+
+  const method = resolveMethod(resolvedInput, init.method);
 
   if (init.body != null && (method === "GET" || method === "HEAD")) {
     throw new TypeError(`customFetch: ${method} requests cannot have a body.`);
   }
 
-  const headers = mergeHeaders(isRequest(input) ? input.headers : undefined, headersInit);
+  const headers = mergeHeaders(
+    isRequest(resolvedInput) ? resolvedInput.headers : undefined,
+    headersInit,
+  );
 
   if (
     typeof init.body === "string" &&
@@ -297,9 +324,9 @@ export async function customFetch<T = unknown>(
     headers.set("accept", DEFAULT_JSON_ACCEPT);
   }
 
-  const requestInfo = { method, url: resolveUrl(input) };
+  const requestInfo = { method, url: resolveUrl(resolvedInput) };
 
-  const response = await fetch(input, { ...init, method, headers });
+  const response = await fetch(resolvedInput, { ...init, method, headers });
 
   if (!response.ok) {
     const errorData = await parseErrorBody(response, method);

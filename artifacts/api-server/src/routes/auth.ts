@@ -33,19 +33,61 @@ router.post("/send-otp", async (req: Request, res: Response) => {
 
   const { phone } = parsed.data;
 
-  // Remove any existing OTPs for this phone
-  await Otp.deleteMany({ phone });
+  try {
+    // Remove any existing OTPs for this phone
+    await Otp.deleteMany({ phone });
 
-  // Create new OTP, expires in 10 minutes
-  const code      = generateOtp();
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-  await Otp.create({ phone, code, expiresAt });
+    // Create new OTP, expires in 10 minutes
+    const code      = generateOtp();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    await Otp.create({ phone, code, expiresAt });
 
-  const isDev = process.env["NODE_ENV"] !== "production";
-  const response: { message: string; devOtp?: string } = { message: "OTP sent successfully" };
-  if (isDev) response.devOtp = code;
+    const isDev = process.env["NODE_ENV"] !== "production";
+    const response: { message: string; devOtp?: string } = { message: "OTP sent successfully" };
+    if (isDev) response.devOtp = code;
 
-  res.json(response);
+    res.json(response);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Database error";
+    console.error("send-otp:", message);
+    res.status(503).json({
+      error:
+        message.includes("MONGODB_URI") || message.includes("Mongo")
+          ? "Database is not configured. Set MONGODB_URI and ensure MongoDB is reachable."
+          : "Could not send OTP. Try again later.",
+    });
+  }
+});
+
+// POST /api/auth/login-phone — find or create user by phone, no OTP
+router.post("/login-phone", async (req: Request, res: Response) => {
+  const parsed = SendOtpBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid phone number" });
+    return;
+  }
+
+  const { phone } = parsed.data;
+
+  try {
+    let user = await User.findOne({ phone });
+    if (!user) {
+      user = await User.create({ phone, isAdmin: false });
+    }
+
+    const token = jwt.sign({ userId: user._id.toString() }, JWT_SECRET, { expiresIn: "30d" });
+
+    res.json({ token, user: serializeUser(user) });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Database error";
+    console.error("login-phone:", message);
+    res.status(503).json({
+      error:
+        message.includes("MONGODB_URI") || message.includes("Mongo")
+          ? "Database is not configured. Set MONGODB_URI and ensure MongoDB is reachable."
+          : "Could not sign in. Try again later.",
+    });
+  }
 });
 
 // POST /api/auth/verify-otp

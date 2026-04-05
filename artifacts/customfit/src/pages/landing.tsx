@@ -1,4 +1,5 @@
 import { Layout } from "@/components/layout";
+import { AUTH_DISABLED } from "@/hooks/use-auth";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowRight, Ruler, CheckCircle, Package } from "lucide-react";
@@ -34,8 +35,8 @@ export default function LandingPage() {
                 Start Customizing
                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link 
-                href="/auth" 
+              <Link
+                href={AUTH_DISABLED ? "/dashboard" : "/auth"}
                 className="inline-flex items-center justify-center px-8 py-4 rounded-full border border-border bg-white text-foreground font-medium hover:bg-secondary transition-colors"
               >
                 Sign In to Account
